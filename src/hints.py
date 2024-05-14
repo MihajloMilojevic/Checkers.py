@@ -16,12 +16,16 @@ def clear_hints(state):
             if state.pieces[row][col] == CellState.MOVE or state.pieces[row][col] == CellState.JUMP:
                 state.pieces[row][col] = CellState.EMPTY
 
-def draw_hints(state):
+def draw_hints(state, moves):
     clear_hints(state)
-    for move in state.possible_moves:
-        state.pieces[move[0]][move[1]] = CellState.MOVE
-    for jump in state.possible_jumps.keys():
-        state.pieces[jump[0]][jump[1]] = CellState.JUMP
+    if moves is None:
+        return
+    for move in moves:
+        print(move)
+        if move[2] is None:
+            state.pieces[move[0]][move[1]] = CellState.MOVE
+        else:
+            state.pieces[move[0]][move[1]] = CellState.JUMP
 
 def get_moves(piece=None):
     if piece is None:
@@ -37,9 +41,11 @@ def calucate_moves(state, row: int, col: int):
     possible_moves = []
     moves = get_moves(pieces[row][col])
     for move in moves:
+        print(f"For: {row}, {col} move: {move}, piece: {pieces[row][col]}")
         new_row = row + move[0]
         new_col = col + move[1]
         if __valid_move(new_row, new_col) and pieces[new_row][new_col] == CellState.EMPTY:
+            print("Valid")
             possible_moves.append((new_row, new_col))
     return possible_moves
 

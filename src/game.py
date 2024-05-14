@@ -17,20 +17,29 @@ class Checkers:
         self.state = GameState(self.screen)
         self.mode = mode
 
-    def run(self):
+    def run(self, onEnd):
         while True:
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
+            try:
+                if self.state.is_game_over():
+                    print("Game Over")
+                    onEnd(self)
                     pg.quit()
                     return
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-                    row = y // Constants.CELL_SIZE
-                    col = x // Constants.CELL_SIZE
-                    self.handle_click(row, col)
-            self.board.draw()
-            self.state.draw()
-            pg.display.update()
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                        return
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        x, y = event.pos
+                        row = y // Constants.CELL_SIZE
+                        col = x // Constants.CELL_SIZE
+                        self.handle_click(row, col)
+                self.board.draw()
+                self.state.draw()
+                pg.display.update()
+            except Exception as e:
+                # raise e
+                print(e)
     
     def handle_click(self, row, col):
         
