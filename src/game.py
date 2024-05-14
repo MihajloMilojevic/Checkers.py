@@ -4,16 +4,18 @@ from src.constans import Constants
 from src.state import GameState
 from src.cell_state import CellState
 from src.hints import clear_hints
-from src.events.click_event import white_click_handler, black_click_handler
+from src.click_event import white_click_handler, black_click_handler
 
 class Checkers:
-    def __init__(self) -> None:
+    SINGLE_PLAYER = 1
+    TWO_PLAYERS = 2
+    def __init__(self, mode) -> None:
         pg.init()
         pg.display.set_caption("Checkers")
         self.screen = pg.display.set_mode((Constants.CELL_COUNT * Constants.CELL_SIZE, Constants.CELL_COUNT * Constants.CELL_SIZE))
         self.board = Board(self.screen)
         self.state = GameState(self.screen)
-
+        self.mode = mode
 
     def run(self):
         while True:
@@ -41,5 +43,7 @@ class Checkers:
             return
         if self.state.player.is_white():
             white_click_handler(self, row, col)
-        else:
+        elif self.mode == Checkers.TWO_PLAYERS:
             black_click_handler(self, row, col)
+        else:
+            pass
