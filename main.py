@@ -1,5 +1,5 @@
-def main():
-    print("Hello, World!")
+from src.game import Checkers
 
 if __name__ == "__main__":
-    main()
+    game = Checkers()
+    game.run()
