@@ -33,6 +33,7 @@ class Checkers:
                         x, y = event.pos
                         row = y // Constants.CELL_SIZE
                         col = x // Constants.CELL_SIZE
+                        #print((row, col))
                         self.handle_click(row, col)
                 self.board.draw()
                 self.state.draw()
@@ -40,6 +41,9 @@ class Checkers:
             except Exception as e:
                 # raise e
                 print(e)
+            
+    def undo(self):
+        self.state.undo_move()
     
     def handle_click(self, row, col):
         

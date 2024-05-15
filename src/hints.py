@@ -21,7 +21,7 @@ def draw_hints(state, moves):
     if moves is None:
         return
     for move in moves:
-        print(move)
+        # print(move)
         if move[2] is None:
             state.pieces[move[0]][move[1]] = CellState.MOVE
         else:
@@ -41,11 +41,11 @@ def calucate_moves(state, row: int, col: int):
     possible_moves = []
     moves = get_moves(pieces[row][col])
     for move in moves:
-        print(f"For: {row}, {col} move: {move}, piece: {pieces[row][col]}")
+        #print(f"For: {row}, {col} move: {move}, piece: {pieces[row][col]}")
         new_row = row + move[0]
         new_col = col + move[1]
         if __valid_move(new_row, new_col) and pieces[new_row][new_col] == CellState.EMPTY:
-            print("Valid")
+            #print("Valid")
             possible_moves.append((new_row, new_col))
     return possible_moves
 
