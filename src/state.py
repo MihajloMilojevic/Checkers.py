@@ -4,6 +4,7 @@ from src.cell_state import CellState
 from src.constans import Constants
 from src.player import Player
 from src.history import History, Record
+from src.cache import Cache, CacheRecord
 
 class GameState:
     def __init__(self, screen):
@@ -11,8 +12,6 @@ class GameState:
         self.winner = None
         self.player = Player()
         self.selected = None
-        self.possible_moves = []
-        self.possible_jumps = {}
         self.pieces = [
             [CellState.EMPTY, CellState.BLACK, CellState.EMPTY, CellState.BLACK, CellState.EMPTY, CellState.BLACK, CellState.EMPTY, CellState.BLACK],
             [CellState.BLACK, CellState.EMPTY, CellState.BLACK, CellState.EMPTY, CellState.BLACK, CellState.EMPTY, CellState.BLACK, CellState.EMPTY],
@@ -27,8 +26,6 @@ class GameState:
         self.number_black_queens = 0
         self.number_white_pieces = 12
         self.number_black_pieces = 12
-        self.white_centar_rate = 20
-        self.black_centar_rate = 20
         self.white_defences = 9
         self.black_defences = 9
         self.white_positions = {(5, 0), (5, 2), (5, 4), (5, 6), (6, 1), (6, 3), (6, 5), (6, 7), (7, 0), (7, 2), (7, 4), (7, 6)}
@@ -92,9 +89,74 @@ class GameState:
                         radius,
                         2
                     )
-    def __hash__(self) -> int:
-        return "".join(map(lambda r: "".join(r), self.pieces))
+    def __str__(self) -> str:
+        return "".join(map(lambda r: "".join(map(lambda x: str(x), r)), self.pieces)) + str(self.player.player)
+    def calucalte_heuristic(self):
+        whites = [0, 0, 0, 0, 0, 0, 0]
+        blackes = [0, 0, 0, 0, 0, 0, 0]
 
+        for r in range(8):
+            for c in range(8):
+                checker = self.pieces[r][c]
+                if checker == CellState.EMPTY:
+                    continue
+                if checker in [CellState.WHITE, CellState.WHITE_QUEEN]:
+                    if checker == CellState.WHITE:
+                        whites[0] += 1
+                    else:
+                        whites[1] += 1
+                    if r == 7:
+                        whites[2] += 1
+                        whites[6] += 1
+                        continue
+                    if r == 3 or r == 4:
+                        if 2 <= c <= 5:
+                            whites[3] += 1
+                        else:
+                            whites[4] += 1
+                    if r > 0 and 0 < c < 7:
+                        if self.pieces[r - 1][c - 1] in [CellState.BLACK, CellState.BLACK_QUEEN] and self.pieces[r + 1][c + 1] == CellState.EMPTY:
+                            whites[5] += 1
+                        if self.pieces[r - 1][c + 1] in [CellState.BLACK, CellState.BLACK_QUEEN] and self.pieces[r + 1][c - 1] == CellState.EMPTY:
+                            whites[5] += 1
+                    if r < 7:
+                        if c == 0 or c == 7:
+                            whites[6] += 1
+                        elif (self.pieces[r + 1][c - 1] in [CellState.WHITE, CellState.WHITE_QUEEN] or self.pieces[r + 1][c - 1] not in [CellState.BLACK_QUEEN, CellState.WHITE_QUEEN]) and \
+                        (self.pieces[r + 1][c + 1] in [CellState.WHITE, CellState.WHITE_QUEEN] or self.pieces[r + 1][c + 1] not in [CellState.BLACK_QUEEN, CellState.WHITE_QUEEN]):
+                            whites[6] += 1
+                else:
+                    if checker == CellState.BLACK:
+                        blackes[0] += 1
+                    else:
+                        blackes[1] += 1
+                    if r == 0:
+                        blackes[2] += 1
+                        blackes[6] += 1
+                        continue
+                    if r == 3 or r == 4:
+                        if 2 <= c <= 5:
+                            blackes[3] += 1
+                        else:
+                            blackes[4] += 1
+                    if r < 7 and 0 < c < 7:
+                        if self.pieces[r + 1][c - 1] in [CellState.WHITE, CellState.WHITE_QUEEN] and self.pieces[r - 1][c + 1] == CellState.EMPTY:
+                            blackes[5] += 1
+                        if self.pieces[r + 1][c + 1] in [CellState.WHITE, CellState.WHITE_QUEEN] and self.pieces[r - 1][c - 1] == CellState.EMPTY:
+                            blackes[5] += 1
+                    if r > 0:
+                        if c == 0 or c == 7:
+                            blackes[6] += 1
+                        elif (self.pieces[r - 1][c - 1] in [CellState.BLACK, CellState.BLACK_QUEEN] or self.pieces[r - 1][c - 1] not in [CellState.BLACK_QUEEN, CellState.WHITE_QUEEN]) and \
+                        (self.pieces[r - 1][c + 1] in [CellState.BLACK, CellState.BLACK_QUEEN] or self.pieces[r - 1][c + 1] not in [CellState.BLACK_QUEEN, CellState.WHITE_QUEEN]):
+                            blackes[6] += 1
+        weights = [5, 7.5, 4, 2.5, 0.5, -3, 3]
+        score = 0
+        for i in range(7):
+            score += weights[i] * (blackes[i] - whites[i])
+        return score
+                        
+                        
     def make_move(self, from_cell, to_cell=None, path=None):
         if path is None:
             records = [Record(self, from_cell, to_cell)]
@@ -105,12 +167,6 @@ class GameState:
         self.player.change_player()
         clear_hints(self)
         self.calculacte_moves()
-        self.is_game_over()
-        # for i in range(8):
-        #     for j in range(8):
-        #         print(self.pieces[i][j], end=" ")
-        #     print()
-        #(self.current_player_moves)
     def undo_move(self):
         moves: list['Record'] = self.history.undo()
         if moves is None:
@@ -122,8 +178,6 @@ class GameState:
             self.number_black_queens = record.number_black_queens
             self.number_white_pieces = record.number_white_pieces
             self.number_black_pieces = record.number_black_pieces
-            self.white_centar_rate = record.white_centar_rate
-            self.black_centar_rate = record.black_centar_rate
             self.white_defences = record.white_defences
             self.black_defences = record.black_defences
             self.white_positions = record.white_positions
@@ -138,7 +192,7 @@ class GameState:
             if(record.over_cell is not None and record.over_piece is not None):
                 self.pieces[record.over_cell[0]][record.over_cell[1]] = record.over_piece
             i -= 1
-        print(self.current_player_moves)
+        # print(self.current_player_moves)
         self.selected = None
         clear_hints(self)
     # all of the unnecessary calculations are for quicker calucation of the heuristic
@@ -152,16 +206,13 @@ class GameState:
             self.number_black_pieces -= 1
             self.black_positions.remove((row, col))
             self.white_defences = self.__calculate_defence(0)
-            self.black_centar_rate -= self.center_matrix[row][col]
         elif self.pieces[row][col] == CellState.WHITE_QUEEN:
             self.number_white_queens -= 1
-            self.white_centar_rate -= self.center_matrix[row][col]
             self.white_positions.remove((row, col))
             self.white_defences = self.__calculate_defence(7)
         elif self.pieces[row][col] == CellState.BLACK_QUEEN:
             self.number_black_queens -= 1
             self.black_positions.remove((row, col))
-            self.black_centar_rate -= self.center_matrix[row][col]
             self.white_defences = self.__calculate_defence(0)
         self.pieces[row][col] = CellState.EMPTY
 
@@ -184,16 +235,12 @@ class GameState:
                 self.__promote_piece(from_row, from_col)
             self.white_positions.remove((from_row, from_col))
             self.white_positions.add((to_row, to_col))
-            self.white_centar_rate -= self.center_matrix[from_row][from_col]
-            self.white_centar_rate += self.center_matrix[to_row][to_col]
             self.white_defences = self.__calculate_defence(7)
         elif self.pieces[from_row][from_col] in [CellState.BLACK, CellState.BLACK_QUEEN]:
             if to_row == 7:
                 self.__promote_piece(from_row, from_col)
             self.black_positions.remove((from_row, from_col))
             self.black_positions.add((to_row, to_col))
-            self.black_centar_rate -= self.center_matrix[from_row][from_col]
-            self.black_centar_rate += self.center_matrix[to_row][to_col]
             self.white_defences = self.__calculate_defence(0)
         self.pieces[to_row][to_col] = self.pieces[from_row][from_col]
         self.pieces[from_row][from_col] = CellState.EMPTY
@@ -224,32 +271,26 @@ class GameState:
     def __calculate_defence(self, row):
         if row == 7:
             map(lambda x: x[1] == 0, self.white_positions)
-            arr = filter(lambda x: x[0] in [CellState.BLACK, CellState.BLACK_QUEEN], [
-                    (self.pieces[0][0], 1),
-                    (self.pieces[0][2], 3),
-                    (self.pieces[0][4], 3), 
-                    (self.pieces[0][6], 2)
-                ])
+            arr = list(filter(lambda x: x in [CellState.BLACK, CellState.BLACK_QUEEN], [
+                    self.pieces[0][0], 
+                    self.pieces[0][2],
+                    self.pieces[0][4], 
+                    self.pieces[0][6], 
+                ]))
         else:
-            arr = filter(lambda x: x[0] in [CellState.WHITE, CellState.WHITE_QUEEN], [
-                    (self.pieces[7][1], 1),
-                    (self.pieces[7][3], 2),
-                    (self.pieces[7][5], 2), 
-                    (self.pieces[7][7], 2)
-                ])
-        return sum(map(lambda x: x[1], arr))
+            arr = list(filter(lambda x: x in [CellState.WHITE, CellState.WHITE_QUEEN], [
+                    self.pieces[7][1], 
+                    self.pieces[7][3],
+                    self.pieces[7][5], 
+                    self.pieces[7][7],
+                ]))
+        return len(arr)
     def is_game_over(self):
         if (self.number_black_pieces + self.number_black_queens) == 0:
-            self.winner = Player.WHITE
             return True
         if (self.number_white_pieces + self.number_white_queens) == 0:
-            self.winner = Player.BLACK
             return True
         if len(self.current_player_moves) == 0:
-            if self.player.is_white():
-                self.winner = Player.BLACK
-            else:
-                self.winner = Player.WHITE
             return True
         return False
         
@@ -258,7 +299,7 @@ class GameState:
             positions = self.white_positions
         else:
             positions = self.black_positions
-        self.current_player_moves.clear()
+        self.current_player_moves = {}
         for position in positions:
             row, col = position
             moves = calucate_moves(self, row, col)

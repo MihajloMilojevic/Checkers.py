@@ -22,8 +22,6 @@ class Record:
         self.number_black_queens = state.number_black_queens
         self.number_white_pieces = state.number_white_pieces
         self.number_black_pieces = state.number_black_pieces
-        self.white_centar_rate = state.white_centar_rate
-        self.black_centar_rate = state.black_centar_rate
         self.white_defences = state.white_defences
         self.black_defences = state.black_defences
         self.white_positions = state.white_positions.copy()

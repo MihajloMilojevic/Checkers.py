@@ -5,6 +5,9 @@ from src.state import GameState
 from src.cell_state import CellState
 from src.hints import clear_hints
 from src.click_event import white_click_handler, black_click_handler
+from src.bot import make_bot_move, randomizer
+import time
+from src.cache import cache
 
 class Checkers:
     SINGLE_PLAYER = 1
@@ -16,15 +19,35 @@ class Checkers:
         self.board = Board(self.screen)
         self.state = GameState(self.screen)
         self.mode = mode
+        self.bot_move = False
+        cache.load()
+        print(self.state)
 
     def run(self, onEnd):
         while True:
             try:
                 if self.state.is_game_over():
                     print("Game Over")
+                    cache.save()
+                    self.state.winner = 1 - self.state.player.player
                     onEnd(self)
                     pg.quit()
                     return
+                if self.state.player.is_black():
+                    make_bot_move(self)
+                else:
+                    randomizer(self)
+                self.board.draw()
+                self.state.draw()
+                pg.display.update()
+                continue
+                if self.bot_move:
+                    start_time = time.perf_counter()
+                    make_bot_move(self)
+                    end_time = time.perf_counter()
+                    elapsed_time = end_time - start_time
+                    print("Elapsed time: ", elapsed_time)
+                    self.bot_move = False
                 for event in pg.event.get():
                     if event.type == pg.QUIT:
                         pg.quit()
@@ -39,8 +62,9 @@ class Checkers:
                 self.state.draw()
                 pg.display.update()
             except Exception as e:
-                # raise e
+                self.bot_move = False
                 print(e)
+                raise e
             
     def undo(self):
         self.state.undo_move()
@@ -51,12 +75,13 @@ class Checkers:
         if self.state.pieces[row][col] == CellState.EMPTY:
             clear_hints(self.state)
             self.state.selected = None
-            self.state.possible_moves = []
-            self.state.possible_jumps = {}
             return
         if self.state.player.is_white():
             white_click_handler(self, row, col)
-        elif self.mode == Checkers.TWO_PLAYERS:
+            if self.state.player.is_black() and self.mode == Checkers.SINGLE_PLAYER:
+                self.bot_move = True
+        elif self.mode != Checkers.SINGLE_PLAYER:
             black_click_handler(self, row, col)
-        else:
-            pass
+
+    def evaluate(self):
+        return self.state.calucalte_heuristic()

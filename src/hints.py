@@ -75,9 +75,6 @@ def calcuate_jumps(state, row: int, col: int, piece=None, previous_jumps=[], pos
         if pieces[new_row][new_col] in oponent_pieces:
             test_row = new_row + move[0]
             test_col = new_col + move[1]
-            # if the cell is out of bounds, we check the other side
-            if test_col < 0 or test_col >= Constants.CELL_COUNT:
-                test_col = new_col + move[1] * -1
             # if the cell is empty, we can jump over it
             if __valid_move(test_row, test_col) and pieces[test_row][test_col] == CellState.EMPTY:
                 # remove the oponent's piece (not really removing, just marking it so next jumps can't jump over it again)

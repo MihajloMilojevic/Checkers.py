@@ -16,7 +16,7 @@ if __name__ == "__main__":
             #frame.setVisible(True)
     def run_game():
         #frame.setVisible(False)
-        State.game = Checkers(Checkers.TWO_PLAYERS)
+        State.game = Checkers(Checkers.SINGLE_PLAYER)
         State.game.run(onEnd)
     button.clicked.connect(run_game)
     undo = QPushButton("Undo")

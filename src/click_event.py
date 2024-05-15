@@ -32,4 +32,5 @@ def play(game, row, col):
             clear_hints(game.state)
             return
     game.state.selected = (row, col)
-    draw_hints(game.state, game.state.current_player_moves[row, col])
+    if (row, col) in game.state.current_player_moves:
+        draw_hints(game.state, game.state.current_player_moves[row, col])
