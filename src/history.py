@@ -24,6 +24,8 @@ class Record:
         self.number_black_pieces = state.number_black_pieces
         self.white_defences = state.white_defences
         self.black_defences = state.black_defences
+        self.heuristic = state.heuristic
+        self.current_player_moves = state.current_player_moves
         self.white_positions = state.white_positions.copy()
         self.black_positions = state.black_positions.copy()
-        self.current_player_moves = deepcopy(state.current_player_moves)
+        # self.current_player_moves = deepcopy(state.current_player_moves)

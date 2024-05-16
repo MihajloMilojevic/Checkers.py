@@ -1,5 +1,5 @@
 
-from src.constans import Constants
+from src.constants import Constants
 from src.cell_state import CellState
 
 

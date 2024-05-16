@@ -1,10 +1,10 @@
 import pygame as pg
 from src.hints import calucate_moves, calcuate_jumps, clear_hints
 from src.cell_state import CellState
-from src.constans import Constants
+from src.constants import Constants
 from src.player import Player
 from src.history import History, Record
-from src.cache import Cache, CacheRecord
+from src.cache import moves
 
 class GameState:
     def __init__(self, screen):
@@ -28,20 +28,14 @@ class GameState:
         self.number_black_pieces = 12
         self.white_defences = 9
         self.black_defences = 9
-        self.white_positions = {(5, 0), (5, 2), (5, 4), (5, 6), (6, 1), (6, 3), (6, 5), (6, 7), (7, 0), (7, 2), (7, 4), (7, 6)}
-        self.black_positions = {(0, 1), (0, 3), (0, 5), (0, 7), (1, 0), (1, 2), (1, 4), (1, 6), (2, 1), (2, 3), (2, 5), (2, 7)}
-        self.center_matrix = [
-            [1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 2, 2, 2, 2, 2, 2, 1],
-            [1, 2, 3, 3, 3, 3, 2, 1],
-            [1, 2, 3, 4, 4, 3, 2, 1],
-            [1, 2, 3, 4, 4, 3, 2, 1],
-            [1, 2, 3, 3, 3, 3, 2, 1],
-            [1, 2, 2, 2, 2, 2, 2, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1]
-        ]
+        self.white_positions: set[tuple] = {(5, 0), (5, 2), (5, 4), (5, 6), (6, 1), (6, 3), (6, 5), (6, 7), (7, 0), (7, 2), (7, 4), (7, 6)}
+        self.black_positions: set[tuple] = {(0, 1), (0, 3), (0, 5), (0, 7), (1, 0), (1, 2), (1, 4), (1, 6), (2, 1), (2, 3), (2, 5), (2, 7)}
         self.current_player_moves = {(5, 0): {(4, 1, None)}, (5, 2): {(4, 1, None), (4, 3, None)}, (5, 4): {(4, 3, None), (4, 5, None)}, (5, 6): {(4, 5, None), (4, 7, None)}}
         self.history = History(self)
+        self.heuristic = self.calucalte_heuristic()
+
+
+
     def draw(self):
         for row_index in range(Constants.CELL_COUNT):
             for cell_index in range(Constants.CELL_COUNT):
@@ -91,6 +85,7 @@ class GameState:
                     )
     def __str__(self) -> str:
         return "".join(map(lambda r: "".join(map(lambda x: str(x), r)), self.pieces)) + str(self.player.player)
+
     def calucalte_heuristic(self):
         whites = [0, 0, 0, 0, 0, 0, 0]
         blackes = [0, 0, 0, 0, 0, 0, 0]
@@ -166,7 +161,19 @@ class GameState:
         self.history.insert(records)
         self.player.change_player()
         clear_hints(self)
+        from_cache = moves.get(str(self))
         self.calculacte_moves()
+        self.heuristic = self.calucalte_heuristic()
+        moves.put(str(self), str((self.current_player_moves, self.heuristic)))
+        # if from_cache is None:
+        #     self.calculacte_moves()
+        #     self.heuristic = self.calucalte_heuristic()
+        #     moves.put(str(self), str((self.current_player_moves, self.heuristic)))
+        # else:
+        #     current_moves, heuristic = eval(from_cache)
+        #     self.current_player_moves = current_moves
+        #     self.heuristic = heuristic
+
     def undo_move(self):
         moves: list['Record'] = self.history.undo()
         if moves is None:
@@ -184,8 +191,21 @@ class GameState:
             self.black_positions = record.black_positions
             self.current_player_moves = record.current_player_moves
             self.player.player = record.current_player
+            self.heuristic = record.heuristic
             from_row, from_col = record.from_cell
             to_row, to_col = record.to_cell
+            # if record.piece in [CellState.WHITE, CellState.WHITE_QUEEN]:
+            #     try:
+            #         self.white_positions.remove((to_row, to_col))
+            #     except KeyError:
+            #         pass
+            #     self.white_positions.add((from_row, from_col))
+            # elif record.piece in [CellState.BLACK, CellState.BLACK_QUEEN]:
+            #     try:
+            #         self.black_positions.remove((to_row, to_col))
+            #     except KeyError:
+            #         pass
+            #     self.black_positions.add((from_row, from_col))
             self.pieces[to_row][to_col] = CellState.EMPTY
             self.pieces[from_row][from_col] = record.piece
             #print(record.piece)

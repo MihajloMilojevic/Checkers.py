@@ -1,7 +1,7 @@
 from src.hints import draw_hints
 from src.cell_state import CellState
 from src.hints import clear_hints, draw_hints, calcuate_jumps, calucate_moves
-from src.constans import Constants
+from src.constants import Constants
 
 
 def white_click_handler(game, row: int, col: int):
@@ -32,5 +32,6 @@ def play(game, row, col):
             clear_hints(game.state)
             return
     game.state.selected = (row, col)
+    clear_hints(game.state)
     if (row, col) in game.state.current_player_moves:
         draw_hints(game.state, game.state.current_player_moves[row, col])

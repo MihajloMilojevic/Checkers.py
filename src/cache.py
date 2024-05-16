@@ -1,9 +1,11 @@
 import os
 import json
+from src.get_path import get_relative_path
 
 class Cache:
-    def __init__(self):
+    def __init__(self, filename):
         self.cache = {}
+        self.filename = filename
 
     def get(self, key):
         return self.cache.get(key, None)
@@ -16,14 +18,17 @@ class Cache:
         self.cache.clear()
 
     def load(self):
-        with open(os.path.join(".", "cache", "cache.txt"), 'r') as file:
-            text = file.read()
-            if text == "":
-                return
-            self.cache = json.loads(text)
+        try:
+            with open(get_relative_path(["cache", self.filename]), 'r') as file:
+                text = file.read()
+                if text == "":
+                    return
+                self.cache = json.loads(text)
+        except:
+            print("Unable to load cache")
 
     def save(self):
-        with open(os.path.join(".", "cache", "cache.txt"), 'w') as file:
+        with open(get_relative_path(["cache", self.filename]), 'w') as file:
             file.write(json.dumps(self.cache))
 
 class CacheRecord:
@@ -31,4 +36,6 @@ class CacheRecord:
         self.moves = moves
         self.heuristic = heuristic
 
-cache = Cache()
+
+scores = Cache("scores.json")
+moves = Cache("moves.json")

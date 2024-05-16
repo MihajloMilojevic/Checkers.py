@@ -1,5 +1,5 @@
 import pygame as pg
-from src.constans import Constants
+from src.constants import Constants
 
 class Board:
     def __init__(self, screen):

@@ -1,5 +1,6 @@
-from src.cache import cache
+from src.cache import scores
 import random
+import math
 
 def make_bot_move(game, black = True):
     position, move = next_move(game, black)
@@ -14,7 +15,7 @@ def next_move(game, black = True):
     beta = float('inf')
     current_moves = tuple(game.state.current_player_moves.items())
     for position, moves in current_moves:
-        depth = max(5 - len(moves), 5)
+        depth = calulate_depth(game)
         for move in moves:
             game.state.make_move(position, (move[0], move[1]), move[2])
             score = minimax(game, alpha, beta, not black, depth)
@@ -32,7 +33,7 @@ def next_move(game, black = True):
 
 def minimax(game, alpha, beta, maximizing_player, depth=3):
     print("Depth: ", depth)
-    from_cache = cache.get(str(game.state))
+    from_cache = scores.get(str(game.state))
     if from_cache is not None:
         return from_cache
     
@@ -56,7 +57,7 @@ def minimax(game, alpha, beta, maximizing_player, depth=3):
                 if beta <= alpha:
                     break
         
-        cache.put(str(game.state), max_score)
+        scores.put(str(game.state), max_score)
         return max_score
     
     else:
@@ -73,7 +74,7 @@ def minimax(game, alpha, beta, maximizing_player, depth=3):
                 
                 if beta <= alpha:
                     break
-        cache.put(str(game.state), min_score)
+        scores.put(str(game.state), min_score)
         return min_score
     
 def randomizer(game):
@@ -81,3 +82,39 @@ def randomizer(game):
     position, moves = random.choice(current_moves)
     move = random.choice(list(moves))
     game.state.make_move(position, (move[0], move[1]), move[2])
+
+def f(x, y):
+    alpha = 0.2
+    max_depth = 7
+    min_depth = 3
+    return int(round(min_depth + (max_depth - min_depth) * math.exp(-alpha * math.sqrt(x**2 + y**2)), 0))
+
+def calulate_depth(game):
+    pieces = game.state.number_white_pieces + game.state.number_black_pieces
+    queens = game.state.number_white_queens + game.state.number_black_queens
+    return f(pieces, queens)
+
+if __name__ == "__main__":
+    import math
+    def f(x, y):
+        alpha = 0.2
+        return int(round(2 + (7 - 2) * math.exp(-alpha * math.sqrt(x**2 + y**2)), 0))
+
+    # Test the function with given points
+    print(f(0, 1))  # Should be close to 7
+    print(f(1, 0))  # Should be close to 7
+    print(f(24, 0))  # Should be close to 2
+    print(f(0, 24))  # Should be close to 2
+    print(f(24, 24))  # Should be close to 2
+    print("   ", end=" ")
+    for x in range(0, 25):
+        print(f"   {x}", end=" ")
+    print()
+    for y in range(0, 25):
+        print(f"{y}", end=" ")
+        for x in range(0, 25):
+            if (x + y) > 24:
+                print("    ", end=" ")
+                continue
+            print(f"   {f(x,y)}", end=" ")
+        print()
