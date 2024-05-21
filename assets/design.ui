@@ -137,6 +137,24 @@ border-radus: 15px;
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <widget class="QCheckBox" name="force_jump_cb">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>300</y>
+     <width>301</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Force Jump?</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

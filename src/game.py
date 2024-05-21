@@ -11,16 +11,17 @@ import time
 class Checkers:
     SINGLE_PLAYER = 1
     TWO_PLAYERS = 2
-    def __init__(self, mode) -> None:
+    def __init__(self, mode, force_jump = False) -> None:
         pg.init()
         pg.display.set_caption("Checkers")
         icon = pg.image.load(Constants.ICON_PATH)
         pg.display.set_icon(icon)
         self.screen = pg.display.set_mode((Constants.CELL_COUNT * Constants.CELL_SIZE, Constants.CELL_COUNT * Constants.CELL_SIZE))
         self.board = Board(self.screen)
-        self.state = GameState(self.screen)
+        self.state = GameState(self.screen, force_jump)
         self.mode = mode
         self.bot_move = False
+        # self.force_jump = force_jump
         #print(self.state)
 
     def run(self, onEnd, onClose):

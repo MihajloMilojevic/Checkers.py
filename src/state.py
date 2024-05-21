@@ -7,7 +7,7 @@ from src.history import History, Record
 from src.cache import moves
 
 class GameState:
-    def __init__(self, screen):
+    def __init__(self, screen, force_jump = False):
         self.screen = screen
         self.winner = None
         self.player = Player()
@@ -33,6 +33,8 @@ class GameState:
         self.current_player_moves = {(5, 0): {(4, 1, None)}, (5, 2): {(4, 1, None), (4, 3, None)}, (5, 4): {(4, 3, None), (4, 5, None)}, (5, 6): {(4, 5, None), (4, 7, None)}}
         self.history = History(self)
         self.heuristic = self.calucalte_heuristic()
+        self.force_jump = force_jump
+
 
 
 
@@ -320,16 +322,30 @@ class GameState:
         else:
             positions = self.black_positions
         self.current_player_moves = {}
+        all_moves = {}
+        only_jumps = {}
         for position in positions:
-            row, col = position
-            moves = calucate_moves(self, row, col)
+            row, col = position 
+            if not self.force_jump or len(only_jumps) == 0:
+                moves = calucate_moves(self, row, col)
+            else:
+                moves = []
             jumps = calcuate_jumps(self, row, col)
             #print(f"Moves: {moves}, jumps: {jumps} for {position}")
-            moves_for_position = set()
-            for move in moves:
-                moves_for_position.add((move[0], move[1], None))
+            
+            all_moves_for_position = set()
+            only_jumps_for_position = set()
             for jump_cell, path in jumps.items():
-                moves_for_position.add((jump_cell[0], jump_cell[1], tuple(path)))
-            if len(moves_for_position) > 0:
+                all_moves_for_position.add((jump_cell[0], jump_cell[1], tuple(path)))
+                only_jumps_for_position.add((jump_cell[0], jump_cell[1], tuple(path)))
+            if len(only_jumps_for_position) > 0:
+                only_jumps[position] = only_jumps_for_position
+            for move in moves:
+                all_moves_for_position.add((move[0], move[1], None))
+            if len(all_moves_for_position) > 0:
                 #print(f"Calulated moves: {moves_for_position} for position: {position}")
-                self.current_player_moves[position] = moves_for_position
+                all_moves[position] = all_moves_for_position
+        if len(only_jumps) > 0 and self.force_jump:
+            self.current_player_moves = only_jumps
+        else:
+            self.current_player_moves = all_moves

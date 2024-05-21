@@ -15,11 +15,12 @@ class App(QtWidgets.QWidget):
         self.setVisible(True)
 
     def play(self):
-        self.setVisible(False)
+        force = self.force_jump_cb.isChecked()
         if self.one_player_rb.isChecked():
-            State.game = Checkers(Checkers.SINGLE_PLAYER)
+            State.game = Checkers(Checkers.SINGLE_PLAYER, force)
         else:
-            State.game = Checkers(Checkers.TWO_PLAYERS)
+            State.game = Checkers(Checkers.TWO_PLAYERS, force)
+        self.setVisible(False)
         State.game.run(self.onEnd, self.onClose)
 
     def onEnd(self, game: Any):
@@ -58,13 +59,13 @@ class App(QtWidgets.QWidget):
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.one_player_rb = QtWidgets.QRadioButton(self)
-        self.one_player_rb.setGeometry(QtCore.QRect(50, 250, 200, 50))
+        self.one_player_rb.setGeometry(QtCore.QRect(50, 220, 200, 50))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.one_player_rb.setFont(font)
         self.one_player_rb.setObjectName("one_player_rb")
         self.two_players_rb = QtWidgets.QRadioButton(self)
-        self.two_players_rb.setGeometry(QtCore.QRect(280, 250, 200, 50))
+        self.two_players_rb.setGeometry(QtCore.QRect(280, 220, 200, 50))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.two_players_rb.setFont(font)
@@ -72,6 +73,12 @@ class App(QtWidgets.QWidget):
         self.two_players_rb.setObjectName("two_players_rb")
         self.play_btn = QtWidgets.QPushButton(self)
         self.play_btn.setGeometry(QtCore.QRect(160, 350, 171, 61))
+        self.force_jump_cb = QtWidgets.QCheckBox(self)
+        self.force_jump_cb.setGeometry(QtCore.QRect(50, 280, 301, 41))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        self.force_jump_cb.setFont(font)
+        self.force_jump_cb.setObjectName("force_jump_cb")
         font = QtGui.QFont()
         font.setPointSize(16)
         self.play_btn.setFont(font)
@@ -83,13 +90,14 @@ class App(QtWidgets.QWidget):
         font = QtGui.QFont()
         font.setPointSize(20)
         self.winner_label.setFont(font)
-        self.winner_label.setText("Select Mode")
         self.winner_label.setAlignment(QtCore.Qt.AlignCenter)
         self.winner_label.setObjectName("winner_label")
 
         self.setWindowTitle("Checkers")
         self.label.setText("CHECKERSSSSS")
+        self.winner_label.setText("Select Mode")
         self.one_player_rb.setText("One Player")
         self.two_players_rb.setText("Two Players")
+        self.force_jump_cb.setText("Force Jump?")
         self.play_btn.setText("PLAY")
 
