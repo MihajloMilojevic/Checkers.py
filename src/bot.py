@@ -84,9 +84,9 @@ def randomizer(game):
     game.state.make_move(position, (move[0], move[1]), move[2])
 
 def f(x, y):
-    alpha = 0.2
-    max_depth = 7
-    min_depth = 3
+    alpha = 0.25
+    max_depth = 8
+    min_depth = 4
     return int(round(min_depth + (max_depth - min_depth) * math.exp(-alpha * math.sqrt(x**2 + y**2)), 0))
 
 def calulate_depth(game):
