@@ -14,6 +14,7 @@ Bot is using minimax algorithm with alpha-beta pruning with changing depth.
 
 All features are specified in [project specification](./materials/Projekat%201%20v.25.03.2024..pdf)
 
+
 ## Setup
 
 App can be started by:
